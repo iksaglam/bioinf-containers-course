@@ -1,0 +1,7 @@
+data/
+results/
+*.sif
+*.bam
+*.bai
+.Rhistory
+.Rproj.user/
