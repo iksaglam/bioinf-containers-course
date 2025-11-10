@@ -1,0 +1,10 @@
+name: base
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - python=3.11
+  - r-base=4.3
+  - samtools=1.20
+  - bcftools=1.20
+  - angsd=0.940
