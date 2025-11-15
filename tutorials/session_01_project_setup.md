@@ -1,6 +1,5 @@
-# Bioinformatics Containerization Tutorial — Session 1: Project Setup and Base Container
-
-In this session we will create a reproducible container-based project for basic population genomics tasks (building with micromamba, testing containers, using prebuilt BioContainers for QC, and initializing a git repo). The examples use `docker`, `micromamba`, `samtools`, `fastqc`, and a minimal Conda environment YAML.
+# Bioinformatics Containerization Tutorial
+## Session 1: Project Setup and Base Container
 
 <br/><br/>
 
