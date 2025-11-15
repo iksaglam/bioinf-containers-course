@@ -1,0 +1,53 @@
+version: "3.9"
+
+x-common: &common
+  image: isophya-course:0.1
+  user: "${UID}:${GID}"
+  working_dir: /workspace
+  volumes:
+    - ../workflow:/workspace:rw
+    - ../data:/data:ro
+    - /mnt/isophya:/data/bams:ro
+    - ../scripts:/scripts:rw
+    - ../results:/results:rw
+  tty: true
+
+services:
+  toolbox:
+    <<: *common
+    container_name: isophya-toolbox
+    command: ["bash"]
+
+  angsd-call:
+    <<: *common
+    container_name: isophya-angsd-call
+    profiles: ["angsd"]
+    environment:
+      POP: "isophya71"
+      THREADS: "8"
+      REF: "/data/ref/isophya_contigs_CAYMY.fasta"
+    command:
+      - bash
+      - -lc
+      - |
+        ./scripts/01_call_genotypes.sh
+
+  pcangsd-pipeline:
+    <<: *common
+    container_name: isophya-pcangsd-pipeline
+    profiles: ["pcangsd"]
+    environment:
+      POP: "isophya71"   # change per cohort
+      THREADS: "8"
+    command:
+      - bash
+      - -lc
+      - |
+        ./scripts/02_pcangsd_pipeline.sh
+
+  r:
+    <<: *common
+    container_name: isophya-r
+    profiles: ["r"]
+    command: ["bash", "-lc", "R"]
+

@@ -8,3 +8,15 @@ dependencies:
   - samtools=1.20
   - bcftools=1.20
   - angsd=0.940
+  - r-ggplot2
+  - r-data.table
+  - r-ggrepel
+  - r-bigutilsr
+  - r-cowplot
+  - r-adegenet
+  - r-ade4
+  - r-vcfr
+  - r-optparse
+  - pip
+  - gsl
+  - zlib
