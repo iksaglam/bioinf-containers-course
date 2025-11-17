@@ -88,19 +88,23 @@ dependencies:
 Create `containers/Dockerfile`:
 
 ```dockerfile
-FROM mambaorg/micromamba:1.5.8
+# syntax=docker/dockerfile:1
 
+FROM mambaorg/micromamba:1.5.10
+
+COPY containers/environment.yml /tmp/environment.yml
+RUN micromamba install -y -n base -f /tmp/environment.yml && \
+    micromamba clean -a -y
+
+# Ensure login shells (bash -l / bash -lc) include conda binaries
 USER root
-WORKDIR /usr/local/env
+RUN printf 'export PATH=/opt/conda/bin:$PATH\n' > /etc/profile.d/00-conda-path.sh
+USER mambauser
 
-COPY environment.yml /tmp/environment.yml
+WORKDIR /workspace
 
-RUN micromamba create -y -f /tmp/environment.yml -n base && \
-    micromamba clean --all --yes
-
-ENV PATH="/opt/conda/envs/base/bin:${PATH}"
-
-CMD ["/bin/bash"]
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]
+CMD ["bash"]
 ```
 
 ---
@@ -108,27 +112,32 @@ CMD ["/bin/bash"]
 ## Build the container
 
 ```bash
-cd containers
-docker build -t bioinf-base:latest .
+cd ~/bioinf-containers-course
+docker build --no-cache -t isophya-course:0.1 -f containers/Dockerfile .
 ```
 
 ---
 
 ## Test the container
 
-Start a shell inside it:
+Interactive shell:
 
 ```bash
-docker run -it bioinf-base:latest bash
+docker run --rm -it isophya-course:0.1 bash
 ```
 
-Test tools:
+Test with a login shell (important for SLURM/Apptainer later):
+```bash
+docker run --rm -it isophya-course:0.1 \
+  bash -lc "echo \$PATH; which angsd; which samtools; which R"
+```
+
+Expected paths (approx.):
 
 ```bash
-samtools --version
-bcftools --version
-python3 --version
-R --version
+/opt/conda/bin/angsd
+/opt/conda/bin/samtools
+/opt/conda/bin/R
 ```
 
 ---
@@ -136,10 +145,11 @@ R --version
 ## Run with mounted data/results
 
 ```bash
-docker run \
-  -v $(pwd)/data:/data \
-  -v $(pwd)/results:/results \
-  -it bioinf-base:latest bash
+docker run --rm -it \
+  -v "$(pwd)/data:/workspace/data:ro" \
+  -v "$(pwd)/results:/workspace/results" \
+  isophya-course:0.1 \
+  bash -lc "samtools --version"
 ```
 
 ---
@@ -158,31 +168,63 @@ git commit -m "Initial container course project"
 Add the GitHub remote:
 
 ```bash
-git remote add origin https://github.com/YOURUSERNAME/bioinf-containers-course.git
+git branch -M main
+git remote add origin \
+  https://github.com/iksaglam/bioinf-containers-course.git
 git push -u origin main
 ```
 
 ---
 
-## Using prebuilt BioContainers for QC
+## Using prebuilt BioContainers
 
-**FastQC**:
 
+Run prebuilt samtools:
 ```bash
-docker run \
-  -v $(pwd)/data:/data \
-  -v $(pwd)/results:/results \
-  biocontainers/fastqc:v0.12.1_cv8 \
-  fastqc /data/*.fastq.gz -o /results
+docker run --rm staphb/samtools:1.20 samtools --version
 ```
 
 **samtools flagstat**:
 
+Assume you have:
 ```bash
-docker run \
-  -v $(pwd)/data:/data \
-  biocontainers/samtools:v1.20_cv1 \
-  samtools flagstat /data/sample.bam
+bioinf-containers-course/data/U_KAV_D04_sorted_flt.bam
+```
+
+Run:
+
+```bash
+docker run --rm \
+  -v "$(pwd)/data:/data:ro" \
+  staphb/samtools:1.20 \
+  samtools flagstat /data/U_KAV_D04_sorted_flt.bam
+```
+
+
+
+**FastQC**:
+
+Run fastqc on a BAM:
+
+Display help:
+```bash
+docker run --rm biocontainers/fastqc:v0.11.9_cv8 fastqc --help
+```
+
+Run FastQC:
+
+```bash
+docker run --rm \
+  -v "$(pwd)/data:/data:ro" \
+  -v "$(pwd)/results:/results" \
+  biocontainers/fastqc:v0.11.9_cv8 \
+  fastqc /data/U_KAV_D04_sorted_flt.bam --outdir /results
+```
+
+Outputs:
+```bash
+results/U_KAV_D04_sorted_flt_fastqc.html
+results/U_KAV_D04_sorted_flt_fastqc.zip
 ```
 
 ---
