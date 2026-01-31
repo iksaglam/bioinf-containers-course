@@ -73,12 +73,18 @@ name: base
 channels:
   - bioconda
   - conda-forge
+
 dependencies:
   - python=3.11
   - r-base=4.3
+
+  # bioinformatics
   - samtools=1.20
   - bcftools=1.20
   - angsd=0.940
+  - pcaone
+
+  # R ecosystem
   - r-ggplot2
   - r-data.table
   - r-ggrepel
@@ -88,9 +94,9 @@ dependencies:
   - r-ade4
   - r-vcfr
   - r-optparse
+
+  # optional but convenient
   - pip
-  - gsl
-  - zlib
 ```
 
 ---
@@ -102,23 +108,18 @@ Create `containers/Dockerfile`:
 ```dockerfile
 FROM mambaorg/micromamba:1.5.10
 
+# Copy environment file
 COPY containers/environment.yml /tmp/environment.yml
-RUN micromamba install -y -n base -f /tmp/environment.yml \
- && micromamba clean -a -y
 
-# build-time toolchain just to compile pcangsd; keep libgomp1 for OpenMP at runtime
+# Install all conda packages into base environment
+RUN micromamba install -y -n base -f /tmp/environment.yml \
+    && micromamba clean -a -y
+
 USER root
-RUN apt-get update \
- && apt-get install -y --no-install-recommends g++ make libgomp1 \
- && /opt/conda/bin/python -m pip install --no-cache-dir pcangsd==1.36.4 \
- && /opt/conda/bin/python -c "import importlib.metadata as im; print('pcangsd', im.version('pcangsd'))" \
- && /opt/conda/bin/pcangsd -h >/dev/null \
- && apt-get purge -y g++ make \
- && apt-get autoremove -y --purge \
- && rm -rf /var/lib/apt/lists/*
 
 # make sure login shells see conda
 RUN printf 'export PATH=/opt/conda/bin:$PATH\n' > /etc/profile.d/00-conda-path.sh
+
 USER mambauser
 
 WORKDIR /workspace
@@ -132,7 +133,7 @@ CMD ["bash"]
 
 ```bash
 cd ~/bioinf-containers-course
-docker build --no-cache -t isophya-course:0.1 -f containers/Dockerfile .
+docker build --no-cache --network=host -t isophya-course:0.2 -f containers/Dockerfile .
 ```
 
 ---
@@ -142,12 +143,12 @@ docker build --no-cache -t isophya-course:0.1 -f containers/Dockerfile .
 Interactive shell:
 
 ```bash
-docker run --rm -it isophya-course:0.1 bash
+docker run --rm -it isophya-course:0.2 bash
 ```
 
 Test with a login shell (important for SLURM/Apptainer later):
 ```bash
-docker run --rm -it isophya-course:0.1 \
+docker run --rm -it isophya-course:0.2 \
   bash -lc "echo \$PATH; which angsd; which samtools; which R"
 ```
 
@@ -167,7 +168,7 @@ Expected paths (approx.):
 docker run --rm -it \
   -v "$(pwd)/data:/workspace/data:ro" \
   -v "$(pwd)/results:/workspace/results" \
-  isophya-course:0.1 \
+  isophya-course:0.2 \
   bash -lc "samtools --version"
 ```
 
