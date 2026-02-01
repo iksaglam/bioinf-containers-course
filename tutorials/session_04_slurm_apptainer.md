@@ -5,7 +5,7 @@
 - [Overview](#overview)
 - [Minimal SLURM + Apptainer structure](#minimal-slurm--apptainer-structure)
 - [SLURM job for ANGSD genotype calling](#slurm-job-for-angsd-genotype-calling)
-- [SLURM job for PCAngsd + selection pipeline](#slurm-job-for-pcangsd--selection-pipeline)
+- [SLURM job for PCAone pca pipeline](#slurm-job-for-PCAone-pca-pipeline)
 - [Chaining jobs with dependencies](#chaining-jobs-with-dependencies)
 - [Unified SLURM script with task selector (optional)](#unified-slurm-script-with-task-selector-optional)
 - [Summary](#summary)
