@@ -99,7 +99,7 @@ services:
       - |
         ./scripts/01_call_genotypes.sh
 
-  pcangsd-pipeline:
+  pca-pipeline:
     <<: *common
     container_name: isophya-pcangsd-pipeline
     environment:
@@ -110,7 +110,7 @@ services:
       - bash
       - -lc
       - |
-        ./scripts/02_pcangsd_pipeline.sh
+        ./scripts/02_pca.sh
 
   r:
     <<: *common
@@ -203,62 +203,39 @@ THREADS="${THREADS:-8}"
 BEAGLE="${BEAGLE:-/results/genotypes/${POP}.beagle.gz}"
 
 STRUCT_OUT="/results/structure/${POP}"
-SEL_PREFIX="/results/selection/${POP}"
 PLOT_DIR="/results/plots"
 
 mkdir -p "$(dirname "${STRUCT_OUT}")" \
-         "$(dirname "${SEL_PREFIX}")" \
          "${PLOT_DIR}"
 
-RSCRIPT_PCADAPT="/workspace/scripts/pcadapt.R"
 RSCRIPT_PCA="/workspace/scripts/plotPCA.R"
-RSCRIPT_ADMIX="/workspace/scripts/plotAdmix.R"
 
-echo "[1/4] pcangsd: structure + inbreeding"
-pcangsd \
+echo "[1/4] pcaone: structure"
+PCAone \
   --beagle "${BEAGLE}" \
-  --admix \
-  --inbreed_samples \
-  --inbreed_sites \
+  --pc 10 \
   --threads "${THREADS}" \
   --out "${STRUCT_OUT}"
 
-echo "[2/4] pcangsd: pcadapt selection"
-pcangsd \
-  -b "${BEAGLE}" \
-  --hwe "${STRUCT_OUT}.lrt.sites" \
-  --pcadapt \
-  --sites_save \
-  -o "${SEL_PREFIX}"
 
-echo "[3/4] R: pcadapt z-scores → selection statistics"
-Rscript "${RSCRIPT_PCADAPT}" \
-  "${SEL_PREFIX}.pcadapt.zscores" \
-  "${SEL_PREFIX}"
-
-echo "[4/4] R: PCA and admixture plots"
+echo "[4/4] R: PCA plot"
 Rscript "${RSCRIPT_PCA}" \
-  -i "${STRUCT_OUT}.cov}" \
+  -i "${STRUCT_OUT}.cov" \
   -c 1-2 \
   -a "/data/${POP}.clst" \
   -o "${PLOT_DIR}/${POP}.pca.pdf"
-
-Rscript "${RSCRIPT_ADMIX}" \
-  "${STRUCT_OUT}.admix.2.Q" \
-  "/data/${POP}.info"
 ```
 
-### Run the PCAngsd pipeline
+### Run the PCA pipeline
 
 ```bash
-docker compose -f workflow/compose.yaml run --rm pcangsd-pipeline
+docker compose -f workflow/compose.yaml run --rm pca-pipeline
 ```
 
 Check results:
 
 ```bash
 ls results/structure
-ls results/selection
 ls results/plots
 ```
 
@@ -276,7 +253,7 @@ Inside:
 
 ```bash
 angsd -h
-pcangsd -h
+PCAone -h
 R --version
 
 ls /data
@@ -290,17 +267,17 @@ docker compose -f workflow/compose.yaml run --rm angsd-call \
   -- angsd -h
 ```
 
-### Run PCAngsd manually
+### Run PCAone manually
 
 ```bash
 docker compose -f workflow/compose.yaml run --rm toolbox
 
 # inside container:
-pcangsd \
+PCAone \
   --beagle /results/genotypes/isophya71.beagle.gz \
-  --admix \
+  --pc 10 \
   --threads 8 \
-  --out /results/pcangsd/isophya71_demo
+  --out /results/strucure/isophya71_demo
 ```
 
 ### Plotting only
@@ -317,18 +294,6 @@ Rscript /workspace/scripts/plotPCA.R \
   -a /data/isophya71.clst \
   -o /results/plots/isophya71.pca.pdf
 ```
-
-#### Admixture barplot
-
-```bash
-docker compose -f workflow/compose.yaml run --rm toolbox
-
-# inside:
-Rscript /workspace/scripts/plotAdmix.R \
-  /results/structure/isophya71.admix.2.Q \
-  /data/isophya71.info
-```
-
 ---
 
 ## Summary
@@ -336,9 +301,9 @@ Rscript /workspace/scripts/plotAdmix.R \
 After Session 2 you can:
 
 - Use `docker compose` to launch a reproducible interactive toolbox.  
-- Run ANGSD and PCAngsd workflows using predefined services.  
+- Run ANGSD and PCA workflows using predefined services.  
 - Override service defaults and run arbitrary commands.  
-- Generate PCA and admixture plots using R scripts.  
+- Generate PCA  using R script.  
 
 ---
 
