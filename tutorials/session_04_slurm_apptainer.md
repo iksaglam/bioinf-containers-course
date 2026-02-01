@@ -116,8 +116,8 @@ Create `~/KU/hpc/run_PCAone_pca.sh`:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=pca_pipeline
-#SBATCH --output=slurm-pcangsd-%j.out
-#SBATCH --error=slurm-pcangsd-%j.err
+#SBATCH --output=slurm-pcaone-%j.out
+#SBATCH --error=slurm-pcaone-%j.err
 #SBATCH --partition=short
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
