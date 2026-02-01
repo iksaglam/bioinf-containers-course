@@ -16,14 +16,14 @@
 
 In this session you will:
 
-- Wrap the ANGSD and PCAngsd pipelines into a minimal Nextflow workflow.
+- Wrap the ANGSD and PCAone pipelines into a minimal Nextflow workflow.
 - Use your existing Docker image locally.
 - See how to lift the same pipeline to KUACC with Apptainer + SLURM.
 
 We assume you already have:
 
 - `isophya-course:0.1` built.
-- `scripts/01_call_genotypes.sh`, `scripts/02_pcangsd_pipeline.sh`.
+- `scripts/01_call_genotypes.sh`, `scripts/02_pca.sh`.
 - A working `compose.yaml` from Session 2.
 
 ---
@@ -33,12 +33,12 @@ We assume you already have:
 We build two processes:
 
 - **call_genotypes**: runs `01_call_genotypes.sh`.
-- **pcangsd_pipeline**: runs `02_pcangsd_pipeline.sh`.
+- **PCAone_pca**: runs `02_pca.sh`.
 
 The workflow is:
 
 1. `call_genotypes` runs first.
-2. `pcangsd_pipeline` depends on its completion.
+2. `PCAone_pca` depends on its completion.
 
 We do not pass many files explicitly; instead we rely on the same directory layout and environment variables as in Docker/Apptainer.
 
@@ -82,7 +82,7 @@ process call_genotypes {
     """
 }
 
-process pcangsd_pipeline {
+process PCAone_pca {
 
     tag { params.pop }
 
@@ -97,16 +97,16 @@ process pcangsd_pipeline {
     export POP=${pop}
     export THREADS=${params.threads}
 
-    ./scripts/02_pcangsd_pipeline.sh
+    ./scripts/02_pca.sh
 
-    echo "${pop}" > /results/.pcangsd_done_${pop}
+    echo "${pop}" > /results/.pca_done_${pop}
     """
 }
 
 workflow {
 
     call_genotypes()
-    pcangsd_pipeline()
+    PCAone_pca()
 }
 ```
 
@@ -122,7 +122,7 @@ profiles {
   docker_local {
 
     process.executor = 'local'
-    process.container = 'isophya-course:0.1'
+    process.container = 'isophya-course:0.2'
     docker.enabled = true
 
     workDir = 'work'
@@ -132,7 +132,7 @@ profiles {
         cpus = 8
         memory = '32 GB'
       }
-      withName: 'pcangsd_pipeline' {
+      withName: 'PCAone_pca' {
         cpus = 8
         memory = '32 GB'
       }
@@ -151,7 +151,7 @@ profiles {
     process.executor = 'slurm'
     workDir = '/scratch/$USER/nextflow-work'
 
-    process.container = '/home/iksaglam/oulu/isophya-course_0.1.sif'
+    process.container = '/home/iksaglam/KU/isophya-course_0.2.sif'
 
     singularity.enabled = true
     singularity.autoMounts = false
@@ -163,7 +163,7 @@ profiles {
         time = '8h'
         clusterOptions = '--partition=short'
       }
-      withName: 'pcangsd_pipeline' {
+      withName: 'PCAone_pca' {
         cpus = 8
         memory = '32 GB'
         time = '8h'
@@ -172,11 +172,11 @@ profiles {
     }
 
     singularity.runOptions = """
-      --bind /home/iksaglam/oulu/data:/data:ro
+      --bind /home/iksaglam/KU/data:/data:ro
       --bind /userfiles/utopalan22/isophya/new_bams:/data/bams:ro
       --bind /userfiles/utopalan22/isophya/references:/data/ref:ro
-      --bind /home/iksaglam/oulu/results:/results
-      --bind /home/iksaglam/oulu/scripts:/workspace/scripts:ro
+      --bind /home/iksaglam/KU/results:/results
+      --bind /home/iksaglam/KU/scripts:/workspace/scripts:ro
       --pwd /workspace
     """
   }
@@ -200,9 +200,9 @@ nextflow run main.nf -profile docker_local \
 
 Nextflow will:
 
-- Pull `isophya-course:0.1` if needed.
+- Pull `isophya-course:0.2` if needed.
 - Run `call_genotypes` inside the container.
-- Then run `pcangsd_pipeline`.
+- Then run `PCAone_pca`.
 
 Check results:
 
@@ -217,7 +217,7 @@ ls ../results
 Once KUACC’s Apptainer and SLURM integration is working, you can run:
 
 ```bash
-cd ~/oulu/workflow
+cd ~/KU/workflow
 
 nextflow run main.nf -profile kuacc_apptainer \
   --pop isophya71 \
@@ -226,8 +226,8 @@ nextflow run main.nf -profile kuacc_apptainer \
 
 Nextflow will:
 
-- Submit `call_genotypes` as a SLURM job using the `isophya-course_0.1.sif`.
-- After completion, submit `pcangsd_pipeline`.
+- Submit `call_genotypes` as a SLURM job using the `isophya-course_0.2.sif`.
+- After completion, submit `PCAone_pca`.
 - Use the same bindings as in Session 4.
 
 ---
