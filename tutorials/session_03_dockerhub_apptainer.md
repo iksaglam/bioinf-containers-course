@@ -119,35 +119,35 @@ ls -lh isophya-course_0.2.sif
 ## Transfer the `.sif` file to KUACC
 
 ```bash
-scp isophya-course_0.1.sif \
-  iksaglam@login.kuacc.ku.edu.tr:~/oulu/
+scp isophya-course_0.2.sif \
+  iksaglam@login.kuacc.ku.edu.tr:~/KU/
 ```
 
 On KUACC:
 
 ```bash
 ssh iksaglam@login.kuacc.ku.edu.tr
-cd ~/oulu
-ls -lh isophya-course_0.1.sif
+cd ~/KU
+ls -lh isophya-course_0.2.sif
 ```
 
 ---
 
 ## Create runtime directories on KUACC
 
-Inside `~/oulu`:
+Inside `~/KU`:
 
 ```bash
-mkdir -p ~/oulu/data
-mkdir -p ~/oulu/results
-mkdir -p ~/oulu/scripts
+mkdir -p ~/KU/data
+mkdir -p ~/KU/results
+mkdir -p ~/KU/scripts
 ```
 
 Place into:
 
-- `~/oulu/data`: `.bamlist`, `.sites`, `.chr`, `.info`, `.clst`, etc.
-- `~/oulu/results`: empty directory for outputs.
-- `~/oulu/scripts`: copies of `01_call_genotypes.sh`, `02_pcangsd_pipeline.sh`, `pcadapt.R`, `plotPCA.R`, `plotAdmix.R`.
+- `~/KU/data`: `.bamlist`, `.sites`, `.chr`, `.info`, `.clst`, etc.
+- `~/KU/results`: empty directory for outputs.
+- `~/KU/scripts`: copies of `01_call_genotypes.sh`, `02_pcangsd_pipeline.sh`, `pcadapt.R`, `plotPCA.R`, `plotAdmix.R`.
 
 Large data remain where they already live:
 
@@ -162,11 +162,11 @@ Large data remain where they already live:
 
 | Host path                       | Container path             | Use                     |
 |---------------------------------|----------------------------|-------------------------|
-| `~/oulu/data`                    | `/data`                   | metadata, lists, filters |
+| `~/KU/data`                    | `/data`                   | metadata, lists, filters |
 | `/userfiles/.../new_bams`        | `/data/bams`              | BAMs (large)           |
 | `/userfiles/.../references`      | `/data/ref`               | reference genome       |
-| `~/oulu/results`                 | `/results`                | outputs                |
-| `~/oulu/scripts`                 | `/workspace/scripts`      | scripts                |
+| `~/KU/results`                 | `/results`                | outputs                |
+| `~/KU/scripts`                 | `/workspace/scripts`      | scripts                |
 
 This matches the defaults in your scripts, for example:
 
@@ -181,22 +181,22 @@ REF="${REF:-/data/ref/isophya_contigs_CAYMY.fasta}"
 ### Inspect the image
 
 ```bash
-cd ~/oulu
+cd ~/KU
 module load apptainer/1.4.1
 
-apptainer inspect isophya-course_0.1.sif
+apptainer inspect isophya-course_0.2.sif
 ```
 
 ### Test bindings interactively
 
 ```bash
 apptainer exec \
-  --bind ~/oulu/data:/data:ro \
+  --bind ~/KU/data:/data:ro \
   --bind /userfiles/utopalan22/isophya/new_bams:/data/bams:ro \
   --bind /userfiles/utopalan22/isophya/references:/data/ref:ro \
-  --bind ~/oulu/results:/results \
-  --bind ~/oulu/scripts:/workspace/scripts:ro \
-  isophya-course_0.1.sif \
+  --bind ~/KU/results:/results \
+  --bind ~/KU/scripts:/workspace/scripts:ro \
+  isophya-course_0.2.sif \
   bash -lc 'ls /data; ls /data/bams | head; ls /data/ref; ls /workspace/scripts'
 ```
 
@@ -206,13 +206,13 @@ If this lists the expected files, your bindings are correct.
 
 ```bash
 apptainer shell \
-  --bind ~/oulu/data:/data:ro \
+  --bind ~/KU/data:/data:ro \
   --bind /userfiles/utopalan22/isophya/new_bams:/data/bams:ro \
   --bind /userfiles/utopalan22/isophya/references:/data/ref:ro \
-  --bind ~/oulu/results:/results \
-  --bind ~/oulu/scripts:/workspace/scripts:ro \
+  --bind ~/KU/results:/results \
+  --bind ~/KU/scripts:/workspace/scripts:ro \
   --pwd /workspace \
-  isophya-course_0.1.sif
+  isophya-course_0.2.sif
 ```
 
 Inside:
@@ -231,33 +231,33 @@ ls /results
 ### ANGSD genotype calling
 
 ```bash
-cd ~/oulu
+cd ~/KU
 
 apptainer exec \
-  --bind ~/oulu/data:/data:ro \
+  --bind ~/KU/data:/data:ro \
   --bind /userfiles/utopalan22/isophya/new_bams:/data/bams:ro \
   --bind /userfiles/utopalan22/isophya/references:/data/ref:ro \
-  --bind ~/oulu/results:/results \
-  --bind ~/oulu/scripts:/workspace/scripts:ro \
+  --bind ~/KU/results:/results \
+  --bind ~/KU/scripts:/workspace/scripts:ro \
   --pwd /workspace \
-  isophya-course_0.1.sif \
+  isophya-course_0.2.sif \
   bash -lc './scripts/01_call_genotypes.sh'
 ```
 
-### PCAngsd + selection pipeline
+### PCA pipeline
 
 ```bash
-cd ~/oulu
+cd ~/KU
 
 apptainer exec \
-  --bind ~/oulu/data:/data:ro \
+  --bind ~/KU/data:/data:ro \
   --bind /userfiles/utopalan22/isophya/new_bams:/data/bams:ro \
   --bind /userfiles/utopalan22/isophya/references:/data/ref:ro \
-  --bind ~/oulu/results:/results \
-  --bind ~/oulu/scripts:/workspace/scripts:ro \
+  --bind ~/KU/results:/results \
+  --bind ~/KU/scripts:/workspace/scripts:ro \
   --pwd /workspace \
-  isophya-course_0.1.sif \
-  bash -lc './scripts/02_pcangsd_pipeline.sh'
+  isophya-course_0.2.sif \
+  bash -lc './scripts/02_pca.sh'
 ```
 
 ---
