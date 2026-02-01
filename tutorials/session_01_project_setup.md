@@ -108,23 +108,25 @@ Create `containers/Dockerfile`:
 ```dockerfile
 FROM mambaorg/micromamba:1.5.10
 
-# Copy environment file
 COPY containers/environment.yml /tmp/environment.yml
 
-# Install all conda packages into base environment
 RUN micromamba install -y -n base -f /tmp/environment.yml \
     && micromamba clean -a -y
 
 USER root
 
-# make sure login shells see conda
-RUN printf 'export PATH=/opt/conda/bin:$PATH\n' > /etc/profile.d/00-conda-path.sh
+ENV MAMBA_ROOT_PREFIX=/opt/conda
+ENV PATH=/opt/conda/envs/base/bin:/opt/conda/bin:$PATH
+
+RUN echo 'eval "$(micromamba shell hook --shell bash)"' > /etc/profile.d/micromamba.sh \
+ && echo 'micromamba activate base' >> /etc/profile.d/micromamba.sh \
+ && chmod +x /etc/profile.d/micromamba.sh
 
 USER mambauser
-
 WORKDIR /workspace
+
 ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]
-CMD ["bash"]
+CMD ["bash"
 ```
 
 ---
@@ -148,8 +150,7 @@ docker run --rm -it isophya-course:0.2 bash
 
 Test with a login shell (important for SLURM/Apptainer later):
 ```bash
-docker run --rm -it isophya-course:0.2 \
-  bash -lc "echo \$PATH; which angsd; which samtools; which R"
+docker run --rm isophya-course:0.4 bash -lc "which angsd; which samtools; which R; echo \$CONDA_DEFAULT_ENV"
 ```
 
 Expected paths (approx.):
@@ -158,6 +159,7 @@ Expected paths (approx.):
 /opt/conda/bin/angsd
 /opt/conda/bin/samtools
 /opt/conda/bin/R
+base
 ```
 
 ---
