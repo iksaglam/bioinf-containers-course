@@ -3,8 +3,8 @@
 
 ## Table of Contents
 - [Overview](#overview)
-- [Tag, log in, and push to Docker Hub](#tag-log-in-and-push-to-docker-hub)
-- [Build the Apptainer image locally](#build-the-apptainer-image-locally)
+- [Build SIF from your local Docker image](#build-sif-from-your-local-docker-image)
+- [Build from Docker Hub](#build-from-docker-hub)
 - [Transfer the .sif file to KUACC](#transfer-the-sif-file-to-kuacc)
 - [Create runtime directories on KUACC](#create-runtime-directories-on-kuacc)
 - [Binding layout inside the container](#binding-layout-inside-the-container)
@@ -17,16 +17,21 @@
 ## Overview
 
 In this session you will:
-
+- Convert the Docker image into an Apptainer `.sif`
 - Tag, log in, and push your image to Docker Hub.
-- Convert the Docker image into an Apptainer `.sif` file.
 - Transfer the `.sif` file to KUACC.
 - Bind KUACC directories into the container.
-- Run ANGSD / PCAngsd inside Apptainer interactively.
-
+- Run ANGSD / PCA inside Apptainer interactively.
 ---
 
-## Tag, log in, and push to Docker Hub
+
+## Build SIF from your local Docker image
+
+View your local images:
+
+```bash
+docker images
+```
 
 Assume you have a local image:
 
@@ -37,11 +42,34 @@ docker images
 Example:
 
 ```text
-REPOSITORY          TAG       IMAGE ID       CREATED        SIZE
-isophya-course      0.1       8c0a92d3f0a2   12 hours ago   6.3GB
+IMAGE                              ID             DISK USAGE   CONTENT SIZE
+biocontainers/fastqc:v0.11.9_cv8   7b8f85bb68da        839MB             0B        
+hello-world:latest                 1b44b5a3e06a       10.1kB             0B  
+iksaglam/isophya-course:0.1        fae152e8a545       2.76GB             0B        
+isophya-course:0.1                 fae152e8a545       2.76GB             0B        
+isophya-course:0.2                 4d3d86432c49       3.16GB             0B        
+isophya-course:0.3                 98011ccca28e       3.16GB             0B        
+staphb/samtools:1.20               c94ad914cd42        472MB             0B       
+
+
 ```
 
-### Log in to Docker Hub
+Build SIF
+
+```bash
+apptainer build isophya-course_0.2.sif docker-daemon://isophya-course:0.2
+```
+
+This produces:
+
+```bash
+ls -lh isophya-course_0.2.sif
+```
+---
+
+## Build from Docker Hub
+
+Log in to Docker Hub
 
 ```bash
 docker login -u iksaglam
@@ -55,39 +83,35 @@ Verify:
 docker info | grep Username
 ```
 
-### Tag the image
+Tag the image
 
 ```bash
-docker tag isophya-course:0.1 iksaglam/isophya-course:0.1
+docker tag isophya-course:0.2 iksaglam/isophya-course:0.2
 ```
 
-### Push the image
+Push the image
 
 ```bash
-docker push iksaglam/isophya-course:0.1
+docker push iksaglam/isophya-course:0.2
 ```
 
 Anyone can later run:
 
 ```bash
-docker pull iksaglam/isophya-course:0.1
+docker pull iksaglam/isophya-course:0.12
 ```
 
----
 
-## Build the Apptainer image locally
-
-On your laptop (with Apptainer installed):
+Build the Apptainer image locally
 
 ```bash
-apptainer build isophya-course_0.1.sif \
-  docker://iksaglam/isophya-course:0.1
+apptainer build isophya-course_0.2.sif docker://iksaglam/isophya-course:0.2
 ```
 
-This produces:
+This again produces:
 
 ```bash
-ls -lh isophya-course_0.1.sif
+ls -lh isophya-course_0.2.sif
 ```
 
 ---
