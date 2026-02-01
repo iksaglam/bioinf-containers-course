@@ -150,7 +150,7 @@ docker run --rm -it isophya-course:0.2 bash
 
 Test with a login shell (important for SLURM/Apptainer later):
 ```bash
-docker run --rm isophya-course:0.4 bash -lc "which angsd; which samtools; which R; echo \$CONDA_DEFAULT_ENV"
+docker run --rm isophya-course:0.2 bash -lc "which angsd; which samtools; which R; echo \$CONDA_DEFAULT_ENV"
 ```
 
 Expected paths (approx.):
