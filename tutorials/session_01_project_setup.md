@@ -126,7 +126,7 @@ USER mambauser
 WORKDIR /workspace
 
 ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]
-CMD ["bash"
+CMD ["bash"]
 ```
 
 ---
