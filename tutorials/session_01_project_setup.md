@@ -135,7 +135,7 @@ CMD ["bash"]
 
 ```bash
 cd ~/bioinf-containers-course
-docker build --no-cache --network=host -t isophya-course:0.2 -f containers/Dockerfile .
+docker build --platform linux/amd64 --no-cache --network=host -t isophya-course:0.2 -f containers/Dockerfile .
 ```
 
 ---
